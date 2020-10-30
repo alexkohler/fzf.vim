@@ -662,22 +662,36 @@ function! s:jump(t, w)
 endfunction
 
 function! s:bufopen(lines)
+  echom "Hello again, world!"
+  echom len(a:lines)
   if len(a:lines) < 2
     return
   endif
-  let b = matchstr(a:lines[1], '\[\zs[0-9]*\ze\]')
-  if empty(a:lines[0]) && get(g:, 'fzf_buffers_jump')
-    let [t, w] = s:find_open_window(b)
-    if t
-      call s:jump(t, w)
-      return
+  for line in a:lines[:1]
+    echom "looping"
+    echom line
+    let b = matchstr(line, '\[\zs[0-9]*\ze\]')
+    if empty(a:lines[0]) && get(g:, 'fzf_buffers_jump')
+      echom "in if"
+      let [t, w] = s:find_open_window(b)
+      if t
+        echom "found t"
+        echom cmd
+        call s:jump(t, w)
+        return
+      endif
     endif
-  endif
-  let cmd = s:action_for(a:lines[0])
-  if !empty(cmd)
-    execute 'silent' cmd
-  endif
-  execute 'buffer' b
+    let cmd = s:action_for(a:lines[0])
+    echom "at cmd"
+    if !empty(cmd)
+      echom "silent executing"
+      echom cmd
+      execute 'silent' cmd
+      return # this will allow you to only select a single thingy
+    endif
+    echom "executing"
+    execute 'buffer' b
+  endfor
 endfunction
 
 function! fzf#vim#_format_buffer(b)
@@ -709,7 +723,7 @@ function! fzf#vim#buffers(...)
   return s:fzf('buffers', {
   \ 'source':  map(fzf#vim#_buflisted_sorted(), 'fzf#vim#_format_buffer(v:val)'),
   \ 'sink*':   s:function('s:bufopen'),
-  \ 'options': ['+m', '-x', '--tiebreak=index', '--header-lines=1', '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2']
+  \ 'options': ['+m', '--multi', '-x', '--tiebreak=index', '--header-lines=1', '--ansi', '-d', '\t', '--with-nth', '3..', '-n', '2,1..2', '--prompt', 'Buf> ', '--query', query, '--preview-window', '+{2}-/2']
   \}, args)
 endfunction
 
