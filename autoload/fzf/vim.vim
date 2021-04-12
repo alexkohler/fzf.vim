@@ -662,43 +662,37 @@ function! s:jump(t, w)
 endfunction
 
 function! s:bufopen(lines)
-  echom len(a:lines)
+  " echom a:lines
   if len(a:lines) < 2
     return
   endif
-  let deleted = 0
-  for line in a:lines[:1]
-    " echom "looping"
+  for line in a:lines
+    let deleted = 0
+    " echom "====processing line" line
     " echom line
     let b = matchstr(line, '\[\zs[0-9]*\ze\]')
-    " echom @@@ b is  . b - note: removed quotes here
     if empty(a:lines[0]) && get(g:, 'fzf_buffers_jump')
-      " echom "in if"
       let [t, w] = s:find_open_window(b)
       if t
-        " echom found t
-        " echom cmd
         call s:jump(t, w)
         return
       endif
     endif
     let cmd = s:action_for(a:lines[0])
-    " echom "at cmd"
     if !empty(cmd)
-      " echom ~~~~~~~~~~~~~~~~~silent executing
-      " echom cmd 
-      " echom b 
+      " echom "Executing " 
+      " echom cmd b
       if b
         execute 'silent' cmd b
-        if cmd == 'bufdelete'
+        if cmd == 'bdelete' || cmd == 'bufdelete'
             let deleted = 1
         endif
-        " this will allow you to only select a single thingy
       endif
     endif
     " echom executing
     " Only switch to the buffer if it wasn't deleted
     if !deleted
+        " echom "not deleted, opening buffer" b
         execute 'buffer' b
     endif
   endfor
